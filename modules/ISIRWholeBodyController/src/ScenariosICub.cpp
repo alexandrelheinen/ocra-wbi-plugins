@@ -37,7 +37,7 @@ void ScenarioICub_01_Standing::doInit(wocra::wOcraController& ctrl, wocra::wOcra
     
     std::cout << "\n\n q_full = \n"<< q_full <<" \n\n";
     
-    std::cout << "\n\n tmFull \n\n";
+    std::cout << "\n\n tmFull \n\n"; //0.0001
     taskManagers["tmFull"] = new wocra::wOcraFullPostureTaskManager(ctrl, model, "fullPostureTask", ocra::FullState::INTERNAL, 10.0, 2*sqrt(10.0), 0.0001, q_full);
 
 
@@ -54,13 +54,23 @@ void ScenarioICub_01_Standing::doInit(wocra::wOcraController& ctrl, wocra::wOcra
     
     
 
-    // XYZdisp << -0.03, 0.0, 0.0;
-    // desiredWaistPosition = desiredWaistPosition + XYZdisp;
-    taskManagers["tmSegPoseWaist"] = new wocra::wOcraSegCartesianTaskManager(ctrl, model, "waistPoseTask", "root_link", ocra::XYZ, 36.0, 2*sqrt(36.0), 1.0, desiredWaistPosition);
+    XYZdisp << 0.0, 0.0, 0.0;
+    desiredWaistPosition = desiredWaistPosition + XYZdisp;
+    double waistKp = 10.0;
+    taskManagers["tmSegPoseWaist"] = new wocra::wOcraSegCartesianTaskManager(ctrl, model, "waistPoseTask", "root_link", ocra::XYZ, waistKp, 2*sqrt(waistKp), 10.0, desiredWaistPosition);
 
 
 
-
+    // double Kp = 10.0;
+    // double Kd = 2.0 * sqrt(Kp);
+    // double wLeftHandTask = 1.0;
+    // Eigen::Vector3d desiredHandPosition, YZ_disp;
+    // YZ_disp << 0.0, 0.0, 0.2;
+    // desiredHandPosition  = model.getSegmentPosition(model.getSegmentIndex("l_hand")).getTranslation();
+    // desiredHandPosition  += YZ_disp;  
+    // // Left hand cartesian task
+    // taskManagers["tmLeftHandCart"] = new wocra::wOcraSegCartesianTaskManager(ctrl, model, "leftHandCartesianTask", "l_hand", ocra::XYZ, Kp, Kd, wLeftHandTask, desiredHandPosition);
+   
 
 
 
@@ -105,6 +115,7 @@ void ScenarioICub_01_Standing::doInit(wocra::wOcraController& ctrl, wocra::wOcra
 
 void ScenarioICub_01_Standing::doUpdate(double time, wocra::wOcraModel& state, void** args)
 {
+    // std::cout<< state.getSegmentPosition(state.getSegmentIndex("root_link")).getTranslation().transpose() << std::endl;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
