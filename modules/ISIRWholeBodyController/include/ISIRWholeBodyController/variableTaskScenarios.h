@@ -4,11 +4,12 @@
 #include "wocra/Tasks/wOcraTaskManagerCollectionBase.h"
 #include "wocra/Trajectory/wOcraTrajectory.h"
 
-class 01_Demonstration : public wocra::wOcraTaskManagerCollectionBase
+class Demonstrations : public wocra::wOcraTaskManagerCollectionBase
 {
     protected:
         virtual void doInit(wocra::wOcraController& ctrl, wocra::wOcraModel& model);
         virtual void doUpdate(double time, wocra::wOcraModel& state, void** args);
+        
     private:
         // Full posture task
         wocra::wOcraFullPostureTaskManager*            fullPostureTask;
@@ -23,7 +24,7 @@ class 01_Demonstration : public wocra::wOcraTaskManagerCollectionBase
         wocra::wOcraTrajectory*                        leftHandTrajectory;
 
 
-        int lHandIndex, rightHandIndex;
+        int lHandIndex, rHandIndex;
 
 };
 

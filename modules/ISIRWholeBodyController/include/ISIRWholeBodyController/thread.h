@@ -23,6 +23,11 @@
 #include <stdexcept>
 #include <vector>
 
+#include <fstream>
+// #include <time.h>
+#include <sstream>
+#include <boost/filesystem.hpp>
+
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Semaphore.h>
@@ -82,6 +87,15 @@ class ISIRWholeBodyControllerThread: public RateThread
     Eigen::Twistd fb_Troot; // vector that contains the twist of root
     yarp::sig::Vector fb_torque; // vector that contains the torque read from the robot
 
+    yarp::sig::Vector torques_cmd;
+
+    /* File saving related */
+    std::ofstream leftArmDataFile;
+    std::ofstream rightArmDataFile;
+
+    std::string leftArmFilePath;
+    std::string rightArmFilePath;
+
 public:
     ISIRWholeBodyControllerThread(string _name, string _robotName, int _period, wholeBodyInterface *_wbi, yarp::os::Property & _options);
 
@@ -91,6 +105,9 @@ public:
 
     /** Start the controller. */
     void startController();
+
+    void printData();
+    void recordData();
 
 };
 

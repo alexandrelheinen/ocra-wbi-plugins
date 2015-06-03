@@ -9,7 +9,7 @@ PROJECT(${PROJECTNAME})
 set(CMAKE_CXX_FLAGS "-fpermissive")
 
 find_package(YARP REQUIRED)
-find_package(YCM REQUIRED) 
+find_package(YCM REQUIRED)
 
 set(CMAKE_MODULE_PATH ${YARP_MODULE_PATH} ${CMAKE_MODULE_PATH})
 set(CMAKE_MODULE_PATH ${YCM_MODULE_PATH} ${CMAKE_MODULE_PATH})
@@ -18,6 +18,7 @@ find_package(Eigen3 REQUIRED)
 find_package(iDynTree REQUIRED)
 find_package(yarpWholeBodyInterface REQUIRED)
 find_package(modHelp REQUIRED)
+find_package(Boost COMPONENTS system filesystem REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 PKG_CHECK_MODULES(PC_WLQP_CONTROL wLQP-Control REQUIRED)
@@ -35,7 +36,7 @@ SOURCE_GROUP("Header Files" FILES ${folder_header})
 
 LINK_DIRECTORIES(${PC_WLQP_CONTROL_LIBRARY_DIRS}
                  ${PC_OCRA_FRAMEWORK_LIBRARY_DIRS}
-                 )
+                 ${Boost_LIBRARY_DIRS})
 
 #ADD_LIBRARY(orcWbiModel SHARED src/orcWbiModel.cpp)
 
@@ -46,7 +47,7 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${BOOST_INCLUDE_DIRS}
                     ${EIGEN_INCLUDE_DIRS}
                     ${PC_WLQP_CONTROL_INCLUDE_DIRS}
-                    ${PC_OCRA_FRAMEWORK_INCLUDE_DIRS} 
+                    ${PC_OCRA_FRAMEWORK_INCLUDE_DIRS}
                     ${modHelp_INCLUDE_DIRS}/include
 #                    ${PC_MODHELP_INCLUDE_DIRS}
                     )
@@ -61,6 +62,7 @@ TARGET_LINK_LIBRARIES(${PROJECTNAME} ${YARP_LIBRARIES}
                                      ${modHelp_LIBRARIES}
                                      ${PC_WLQP_CONTROL_LIBRARIES}
                                      ${PC_OCRA_FRAMEWORK_LIBRARIES}
+                                     ${Boost_LIBRARIES}
 #                                     ${PC_MODHELP_LIBRARIES}
                                      )
 
