@@ -38,8 +38,6 @@ LINK_DIRECTORIES(${PC_WLQP_CONTROL_LIBRARY_DIRS}
                 ${ocraWbiPlugins_SOURCE_DIR}/src
                  )
 
-
-
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include
                     ${YARP_INCLUDE_DIRS}
                     ${yarpWholeBodyInterface_INCLUDE_DIRS}
@@ -69,8 +67,6 @@ INSTALL(TARGETS ${PROJECTNAME} DESTINATION lib)
 
 # INSTALL(FILES ${folder_header} DESTINATION include/${PROJECTNAME})
 INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/${PROJECTNAME} DESTINATION include)
-
-
 
 # INSTALL(TARGETS ${PROJECTNAME}
 #         LIBRARY DESTINATION lib

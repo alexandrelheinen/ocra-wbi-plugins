@@ -2,8 +2,6 @@
 #define SEQUENCELIBRARY_H
 
 
-
-
 #include "sequences/FixedBaseMinimalTasks.h"
 #include "sequences/FloatingBaseMinimalTasks.h"
 #include "sequences/InitialPoseHold.h"
@@ -18,6 +16,7 @@
 #include "sequences/JointTest.h"
 #include "sequences/Debug.h"
 #include "sequences/Empty.h"
+#include "sequences/StageTestTasks.h"
 
 // namespace sequence{
 

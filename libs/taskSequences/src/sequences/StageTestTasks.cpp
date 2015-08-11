@@ -29,10 +29,6 @@
     count = 0;
   }
 
-  // set functions
-  // void setStiffness(double stiffness); = kp
-  // void setDamping(double damping);     = td
-  // void setWeight(double weight);
   void StageTestTasks::doUpdate(double time, wocra::wOcraModel& state, void** args)
   {
     // parameters iteration
