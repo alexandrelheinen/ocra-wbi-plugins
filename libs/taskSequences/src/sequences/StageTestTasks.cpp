@@ -8,22 +8,33 @@
     for (unsigned int i = 0; i < NB_POSTURES; ++i)                  // NB_POSTURES elements
       q.push_back(Eigen::VectorXd::Zero(model.nbInternalDofs()));
 
-    extendArm ('l', model, q.at(0));
-    extendArm ('r', model, q.at(0));
-    turnArm   ('l', model, q.at(1));
-    turnArm   ('r', model, q.at(1));
-    bendArm   ('l', model, q.at(2));
-    bendArm   ('r', model, q.at(2));
-    raiseArm  ('l', model, q.at(3));
-    raiseArm  ('r', model, q.at(3));
-    downArm   ('l', model, q.at(4));
-    downArm   ('r', model, q.at(4));
+    for (int k = 0; k < NB_POSTURES; k++)
+    {
+      if(k > 0)
+        q.at(k) = q.at(k-1);
+      switch(k)
+      {
+        case 1: closeArms (model, q.at(k));
+                break;
+        case 2: moveRight (model, q.at(k));
+                break;
+        case 3: moveLeft  (model, q.at(k));
+                moveLeft  (model, q.at(k));
+                break;
+        case 4: moveRight (model, q.at(k));
+                break;
+        case 5: openArms  (model, q.at(k));
+                break;
+        case 0:
+        default: moveCenter(model, q.at(k));
+      }
+    }
 
-    p   = 20.0;
-    t_d = 13.0;
+    kp   = 20.0;
+    kd = 13.0;
     w   = 1.0;
 
-    posture = new wocra::wOcraFullPostureTaskManager(ctrl, model, "fullPostureTask", ocra::FullState::INTERNAL, p, t_d, w, q.at(0));
+    posture = new wocra::wOcraFullPostureTaskManager(ctrl, model, "fullPostureTask", ocra::FullState::INTERNAL, kp, kd, w, q.at(0));
     taskManagers["tmFull"] = posture;
     mode = 0;
     count = 0;
@@ -31,24 +42,6 @@
 
   void StageTestTasks::doUpdate(double time, wocra::wOcraModel& state, void** args)
   {
-    // parameters iteration
-    double t          = time - MAX*TIME_STEP*floor(time/(MAX*TIME_STEP));
-    if(t > TIME_STEP*(count+1) || (t < TIME_STEP && count == MAX - 1 ))
-    {
-      count     = (count + 1)%MAX;
-      p         =     VALUE_STEP*count;
-      t_d       = 0.2*VALUE_STEP*count;
-      posture->setStiffness(p);
-      posture->setDamping(t_d);
-      posture->setWeight(w);
-
-      std::cout << "Stiffness   = " << p    << ";  \n"
-                << "Damping     = " << t_d  << ";  \n"
-                << "Task weight = " << w    << ";  \n"
-                << "  at "          << time << "s; \n"
-                << "...............................\n";
-    }
-
     // posture iteration, assures the sequence of NB_POSTURES postures at the vector q in a period of PERIOD seconds
     time -= PERIOD*floor(time/PERIOD); // normalized time
 
@@ -68,37 +61,53 @@
     q[model.getDofIndex(side + "_elbow")]          =  120.0*DEG_TO_RAD;
   }
 
-  void StageTestTasks::downArm(char s, wocra::wOcraModel &model, VectorXd &q)
+  void StageTestTasks::openArms(wocra::wOcraModel &model, VectorXd &q)
   {
-    std::string side(&s, 1);
-    q[model.getDofIndex(side + "_shoulder_roll")]  = 0.0*DEG_TO_RAD;
-    q[model.getDofIndex(side + "_shoulder_pitch")] = 0.0*DEG_TO_RAD;
-    q[model.getDofIndex(side + "_shoulder_yaw")]   = 0.0*DEG_TO_RAD;
-    q[model.getDofIndex(side + "_elbow")]          = M_PI / 8;
+    q[model.getDofIndex("l_shoulder_roll")]  += 30.0*DEG_TO_RAD;
+    q[model.getDofIndex("l_elbow")]          += 15.0*DEG_TO_RAD;
+
+    q[model.getDofIndex("r_shoulder_roll")]  += 30.0*DEG_TO_RAD;
+    q[model.getDofIndex("r_elbow")]          += 15.0*DEG_TO_RAD;
   }
 
-  void StageTestTasks::extendArm(char s, wocra::wOcraModel &model, VectorXd &q)
+  void StageTestTasks::closeArms(wocra::wOcraModel &model, VectorXd &q)
   {
-    std::string side(&s, 1);
-    q[model.getDofIndex(side + "_shoulder_pitch")] =  -90.0*DEG_TO_RAD;
-    q[model.getDofIndex(side + "_shoulder_roll")]  =  20.0*DEG_TO_RAD;
-    q[model.getDofIndex(side + "_shoulder_yaw")]   =  90.0*DEG_TO_RAD;
-    q[model.getDofIndex(side + "_elbow")]          =  2.0*DEG_TO_RAD;
+    q[model.getDofIndex("l_shoulder_roll")]  -= 30.0*DEG_TO_RAD;
+    q[model.getDofIndex("l_elbow")]          -= 15.0*DEG_TO_RAD;
+
+    q[model.getDofIndex("r_shoulder_roll")]  -= 30.0*DEG_TO_RAD;
+    q[model.getDofIndex("r_elbow")]          -= 15.0*DEG_TO_RAD;
   }
 
-  void StageTestTasks::turnArm(char s, wocra::wOcraModel &model, VectorXd &q)
+  void StageTestTasks::moveRight(wocra::wOcraModel &model, VectorXd &q)
   {
-    std::string side(&s, 1);
-    extendArm(s, model, q);
-    q[model.getDofIndex(side + "_shoulder_yaw")] = -90.0*DEG_TO_RAD;
+    q[model.getDofIndex("l_shoulder_roll")] += 30.0*DEG_TO_RAD;
+    q[model.getDofIndex("r_shoulder_yaw")]  += 30.0*DEG_TO_RAD;
+
+    q[model.getDofIndex("r_shoulder_roll")] -= 30.0*DEG_TO_RAD;
+    q[model.getDofIndex("r_shoulder_yaw")]  -= 30.0*DEG_TO_RAD;
   }
 
-  void StageTestTasks::bendArm(char s, wocra::wOcraModel &model, VectorXd &q)
+  void StageTestTasks::moveLeft(wocra::wOcraModel &model, VectorXd &q)
   {
-    std::string side(&s, 1);
-    extendArm(s, model, q);
-    turnArm(s, model, q);
-    q[model.getDofIndex(side + "_elbow")] = -120.0*DEG_TO_RAD;
+    q[model.getDofIndex("l_shoulder_roll")] -= 30.0*DEG_TO_RAD;
+    q[model.getDofIndex("r_shoulder_yaw")]  -= 30.0*DEG_TO_RAD;
+
+    q[model.getDofIndex("r_shoulder_roll")] += 30.0*DEG_TO_RAD;
+    q[model.getDofIndex("r_shoulder_yaw")]  += 30.0*DEG_TO_RAD;
+  }
+
+  void StageTestTasks::moveCenter(wocra::wOcraModel &model, VectorXd &q)
+  {
+    q[model.getDofIndex("l_shoulder_roll")]  = +20.0*DEG_TO_RAD;
+    q[model.getDofIndex("l_shoulder_pitch")] = -60.0*DEG_TO_RAD;
+    q[model.getDofIndex("l_shoulder_yaw")]   = +20.0*DEG_TO_RAD;
+    q[model.getDofIndex("l_elbow")]          = 40.0*DEG_TO_RAD;
+
+    q[model.getDofIndex("r_shoulder_roll")]  = +20.0*DEG_TO_RAD;
+    q[model.getDofIndex("r_shoulder_pitch")] = -60.0*DEG_TO_RAD;
+    q[model.getDofIndex("r_shoulder_yaw")]   = +20.0*DEG_TO_RAD;
+    q[model.getDofIndex("r_elbow")]          = 40.0*DEG_TO_RAD;
   }
 
 // }

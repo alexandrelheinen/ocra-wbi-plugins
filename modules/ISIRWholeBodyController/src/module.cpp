@@ -31,13 +31,19 @@ ISIRWholeBodyControllerModule::ISIRWholeBodyControllerModule()
     period = 10;
 }
 
+ISIRWholeBodyControllerModule::ISIRWholeBodyControllerModule(int _period) : period(_period)
+{
+    ctrlThread = 0;
+    robotInterface = 0;
+}
+
 bool ISIRWholeBodyControllerModule::configure(ResourceFinder &rf)
 {
     //--------------------------READ FROM CONFIGURATION----------------------
     if( rf.check("robot") )
     {
         robotName = rf.find("robot").asString().c_str();
-        std::cout << "\n\nRobot name is: " << robotName << "\n" << std::endl;
+        std::cout << std::endl << std::endl << ":: Robot name is: " << robotName << std::endl << std::endl;
     }
     if( rf.check("local") )
     {
@@ -108,7 +114,11 @@ bool ISIRWholeBodyControllerModule::configure(ResourceFinder &rf)
                                                    startupSequence,
                                                    debugMode,
                                                    isFloatingBase);
-    if(!ctrlThread->start()){ fprintf(stderr, "Error while initializing ISIRWholeBodyController thread. Closing module.\n"); return false; }
+    if(!ctrlThread->start())
+    {
+      fprintf(stderr, "Error while initializing ISIRWholeBodyController thread. Closing module.\n");
+      return false;
+    }
 
     fprintf(stderr,"ISIRWholeBodyController thread started\n");
 

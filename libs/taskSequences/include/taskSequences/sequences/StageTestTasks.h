@@ -6,11 +6,8 @@
 #include <math.h>
 #include <vector>
 
-#define NB_POSTURES 5
-#define PERIOD      10.0
-#define TIME_STEP   20.0
-#define MAX         10
-#define VALUE_STEP  5.0
+#define NB_POSTURES 6
+#define PERIOD      30.0
 
 // namespace sequence {
 
@@ -20,19 +17,20 @@
             virtual void doInit(wocra::wOcraController& ctrl, wocra::wOcraModel& model);
             virtual void doUpdate(double time, wocra::wOcraModel& state, void** args);
             // tasks postures
-            void raiseArm (char side, wocra::wOcraModel &model, VectorXd &q);
-            void downArm  (char side, wocra::wOcraModel &model, VectorXd &q);
-            void extendArm(char side, wocra::wOcraModel &model, VectorXd &q);
-            void turnArm  (char side, wocra::wOcraModel &model, VectorXd &q);
-            void bendArm  (char side, wocra::wOcraModel &model, VectorXd &q);
+            void closeArms (wocra::wOcraModel &model, VectorXd &q);
+            void openArms  (wocra::wOcraModel &model, VectorXd &q);
+            void moveRight (wocra::wOcraModel &model, VectorXd &q);
+            void moveLeft  (wocra::wOcraModel &model, VectorXd &q);
+            void moveCenter(wocra::wOcraModel &model, VectorXd &q);
+            void raiseArm  (char side, wocra::wOcraModel &model, VectorXd &q);
         private:
             wocra::wOcraFullPostureTaskManager *posture;
             // Full posture task
             int mode; // up down
             std::vector<Eigen::VectorXd> q;
             // PD parameters values
-            double p;
-            double t_d;
+            double kp;
+            double kd;
             double w;
             int count;
     };

@@ -47,6 +47,7 @@ class ISIRWholeBodyControllerModule: public RFModule
 
 public:
     ISIRWholeBodyControllerModule();
+    ISIRWholeBodyControllerModule(int _period);
 
     bool configure(yarp::os::ResourceFinder &rf); // configure all the module parameters and return true if successful
     bool interruptModule(); // interrupt, e.g., the ports

@@ -21,6 +21,7 @@
 #include <ISIRWholeBodyController/module.h>
 
 #define DEFAULT_YARP_CONTEXT "ISIRWholeBodyController"
+#define SEQ_PERIOD 30
 
 using namespace yarp::os;
 using namespace std;
@@ -38,22 +39,22 @@ int main (int argc, char * argv[])
 
     if (rf.check("help"))
     {
-        cout<< "Possible parameters" << endl << endl;
-        cout<< "\t--context :Where to find an user defined .ini file e.g. /locomotionCtrl" <<endl;
-        cout<< "\t--from :Name of the file.ini to be used for configuration." <<endl;
-        cout<< "\t--rate :Period used by the module. Default set to 10ms." <<endl;
-        cout<< "\t--robot :Robot name (icubSim or icub). Set to icub by default." <<endl;
-        cout<< "\t--local :Prefix of the ports opened by the module. Set to the module name by default, i.e. basicWholeBodyInterfaceModule." <<endl;
-        cout<< "\t--taskSet :A path to an XML file containing a set of tasks. The tasks will be created when the controller is started. Set to empty by default." <<endl;
-        cout<< "\t--sequence :A string identifying a predefined scenario. The scenarios (sets of tasks and control logic) are defined in sequenceCollection and will be created when the controller is started. Set to empty by default." <<endl;
-        cout<< "\t--debug :If this flag is present then the controller will run in Debug mode which allows each joint to be tested individually." <<endl;
-        cout<< "\t--floatingBase :If this flag is present then the controller will run in using a floating base dynamic model and control. Defaults to false, or fixed base if no flag is present." <<endl;
+        cout<< " :: Possible parameters" << endl << endl;
+        cout<< "\t--context      : Where to find an user defined .ini file e.g. /locomotionCtrl" <<endl;
+        cout<< "\t--from         : Name of the file.ini to be used for configuration." <<endl;
+        cout<< "\t--rate         : Period used by the module. Default set to 10ms." <<endl;
+        cout<< "\t--robot        : Robot name (icubSim or icub). Set to icub by default." <<endl;
+        cout<< "\t--local        : Prefix of the ports opened by the module. Set to the module name by default, i.e. basicWholeBodyInterfaceModule." <<endl;
+        cout<< "\t--taskSet      : A path to an XML file containing a set of tasks. The tasks will be created when the controller is started. Set to empty by default." <<endl;
+        cout<< "\t--sequence     : A string identifying a predefined scenario. The scenarios (sets of tasks and control logic) are defined in sequenceCollection and will be created when the controller is started. Set to empty by default." <<endl;
+        cout<< "\t--debug        : If this flag is present then the controller will run in Debug mode which allows each joint to be tested individually." <<endl;
+        cout<< "\t--floatingBase : If this flag is present then the controller will run in using a floating base dynamic model and control. Defaults to false, or fixed base if no flag is present." <<endl;
         return 0;
     }
 
     Network yarp;
 
-    double network_timeout = 10.0;
+    double network_timeout = SEQ_PERIOD;
     if (!yarp.checkNetwork(network_timeout))
     {
         fprintf(stderr,"Sorry YARP network is not available\n");
@@ -61,7 +62,7 @@ int main (int argc, char * argv[])
     }
 
     //Creating the module
-    ISIRWholeBodyControllerModule module;
+    ISIRWholeBodyControllerModule module(SEQ_PERIOD);
 
     return module.runModule(rf);
 }
