@@ -5,39 +5,31 @@
 // namespace sequence{
   void StageTestTasks::doInit(wocra::wOcraController& ctrl, wocra::wOcraModel& model)
   {
-    for (unsigned int i = 0; i < NB_POSTURES; ++i)                  // NB_POSTURES elements
-      q.push_back(Eigen::VectorXd::Zero(model.nbInternalDofs()));
-
-    for (int k = 0; k < NB_POSTURES; k++)
-    {
-      if(k > 0)
-        q.at(k) = q.at(k-1);
-      switch(k)
-      {
-        case 1: closeArms (model, q.at(k));
-                break;
-        case 2: moveRight (model, q.at(k));
-                break;
-        case 3: moveLeft  (model, q.at(k));
-                moveLeft  (model, q.at(k));
-                break;
-        case 4: moveRight (model, q.at(k));
-                break;
-        case 5: openArms  (model, q.at(k));
-                break;
-        case 0:
-        default: moveCenter(model, q.at(k));
-      }
-    }
-
-    kp   = 20.0;
+    kp = 20.0;
     kd = 13.0;
-    w   = 1.0;
+    w  = 1.0;
 
-    posture = new wocra::wOcraFullPostureTaskManager(ctrl, model, "fullPostureTask", ocra::FullState::INTERNAL, kp, kd, w, q.at(0));
-    taskManagers["tmFull"] = posture;
+    // full posture task
+    Eigen::VectorXd q = Eigen::VectorXd::Zero(model.nbInternalDofs());
+    getHomePosture(model, q);
+    taskManagers["tmFull"] = new wocra::wOcraFullPostureTaskManager(ctrl, model, "fullPostureTask", ocra::FullState::INTERNAL, kp, kd, 10*w, q);
+    // CoM task
+    Eigen::Vector3d posCoM = model.getCoMPosition();
+    taskManagers["tmCoM"] = new wocra::wOcraCoMTaskManager(ctrl, model, "CoMTask", kp, kd, 50*w, posCoM);
+
+    // position sequences
+    for (unsigned int i = 0; i < NB_POSTURES; ++i)                  // NB_POSTURES elements
+    {
+      rightHandPos.push_back(Eigen::Vector3d::Zero());
+      leftHandPos.push_back(Eigen::Vector3d::Zero());
+    }
+    positionInit();
+
+    leftHand  = new wocra::wOcraSegCartesianTaskManager(ctrl, model, "leftHandCartesianTask",  "l_hand", ocra::XYZ, kp, kd, 1000*w, leftHandPos.at(0));
+    rightHand = new wocra::wOcraSegCartesianTaskManager(ctrl, model, "rightHandCartesianTask", "r_hand", ocra::XYZ, kp, kd, 1000*w, rightHandPos.at(0));
+    taskManagers["tmSegCartHandLeft"]  = leftHand;
+    taskManagers["tmSegCartHandRight"] = rightHand;
     mode = 0;
-    count = 0;
   }
 
   void StageTestTasks::doUpdate(double time, wocra::wOcraModel& state, void** args)
@@ -47,67 +39,31 @@
 
     if(time >= (mode + 1)*PERIOD/NB_POSTURES + 0.1  || (time < PERIOD/NB_POSTURES && mode == NB_POSTURES - 1))
     {
-      posture->setPosture(q.at(mode));
+      std::cout << ":: POSTURE N° "      << mode + 1 << " :: " << std::endl
+                << "left "               << std::endl
+                << leftHandPos.at(mode)  << std::endl
+                << "right "              << std::endl
+                << rightHandPos.at(mode) << std::endl;
+
+      leftHand->setState(leftHandPos.at(mode));
+      rightHand->setState(rightHandPos.at(mode));
       mode = (mode + 1)%NB_POSTURES;
     }
   }
 
-  void StageTestTasks::raiseArm(char s, wocra::wOcraModel &model, VectorXd &q)
+  void StageTestTasks::positionInit()
   {
-    std::string side(&s, 1);
-    q[model.getDofIndex(side + "_shoulder_pitch")] = -120.0*DEG_TO_RAD;
-    q[model.getDofIndex(side + "_shoulder_roll")]  =  90.0*DEG_TO_RAD;
-    q[model.getDofIndex(side + "_shoulder_yaw")]   =  90.0*DEG_TO_RAD;
-    q[model.getDofIndex(side + "_elbow")]          =  120.0*DEG_TO_RAD;
+    leftHandPos.at(0)  = Eigen::Vector3d(-0.2, -0.1, 0.1);
+    leftHandPos.at(1)  = leftHandPos.at(0)  + Eigen::Vector3d(0.0,  0.05, 0.0);
+    leftHandPos.at(2)  = leftHandPos.at(1)  + Eigen::Vector3d(0.0, -0.10, 0.0);
+    leftHandPos.at(3)  = leftHandPos.at(1)  + Eigen::Vector3d(0.0,  0.10, 0.0);
+    leftHandPos.at(4)  = leftHandPos.at(1);
+    leftHandPos.at(5)  = leftHandPos.at(0);
+
+    rightHandPos.at(0) = Eigen::Vector3d(-0.2, 0.1, 0.1);
+    rightHandPos.at(1) = rightHandPos.at(0) + Eigen::Vector3d(0.0, -0.05, 0.0);
+    rightHandPos.at(2) = rightHandPos.at(1) + Eigen::Vector3d(0.0, -0.10, 0.0);
+    rightHandPos.at(3) = rightHandPos.at(1) + Eigen::Vector3d(0.0,  0.10, 0.0);
+    rightHandPos.at(4) = rightHandPos.at(1);
+    rightHandPos.at(5) = rightHandPos.at(0);
   }
-
-  void StageTestTasks::openArms(wocra::wOcraModel &model, VectorXd &q)
-  {
-    q[model.getDofIndex("l_shoulder_roll")]  += 30.0*DEG_TO_RAD;
-    q[model.getDofIndex("l_elbow")]          += 15.0*DEG_TO_RAD;
-
-    q[model.getDofIndex("r_shoulder_roll")]  += 30.0*DEG_TO_RAD;
-    q[model.getDofIndex("r_elbow")]          += 15.0*DEG_TO_RAD;
-  }
-
-  void StageTestTasks::closeArms(wocra::wOcraModel &model, VectorXd &q)
-  {
-    q[model.getDofIndex("l_shoulder_roll")]  -= 30.0*DEG_TO_RAD;
-    q[model.getDofIndex("l_elbow")]          -= 15.0*DEG_TO_RAD;
-
-    q[model.getDofIndex("r_shoulder_roll")]  -= 30.0*DEG_TO_RAD;
-    q[model.getDofIndex("r_elbow")]          -= 15.0*DEG_TO_RAD;
-  }
-
-  void StageTestTasks::moveRight(wocra::wOcraModel &model, VectorXd &q)
-  {
-    q[model.getDofIndex("l_shoulder_roll")] += 30.0*DEG_TO_RAD;
-    q[model.getDofIndex("r_shoulder_yaw")]  += 30.0*DEG_TO_RAD;
-
-    q[model.getDofIndex("r_shoulder_roll")] -= 30.0*DEG_TO_RAD;
-    q[model.getDofIndex("r_shoulder_yaw")]  -= 30.0*DEG_TO_RAD;
-  }
-
-  void StageTestTasks::moveLeft(wocra::wOcraModel &model, VectorXd &q)
-  {
-    q[model.getDofIndex("l_shoulder_roll")] -= 30.0*DEG_TO_RAD;
-    q[model.getDofIndex("r_shoulder_yaw")]  -= 30.0*DEG_TO_RAD;
-
-    q[model.getDofIndex("r_shoulder_roll")] += 30.0*DEG_TO_RAD;
-    q[model.getDofIndex("r_shoulder_yaw")]  += 30.0*DEG_TO_RAD;
-  }
-
-  void StageTestTasks::moveCenter(wocra::wOcraModel &model, VectorXd &q)
-  {
-    q[model.getDofIndex("l_shoulder_roll")]  = +20.0*DEG_TO_RAD;
-    q[model.getDofIndex("l_shoulder_pitch")] = -60.0*DEG_TO_RAD;
-    q[model.getDofIndex("l_shoulder_yaw")]   = +20.0*DEG_TO_RAD;
-    q[model.getDofIndex("l_elbow")]          = 40.0*DEG_TO_RAD;
-
-    q[model.getDofIndex("r_shoulder_roll")]  = +20.0*DEG_TO_RAD;
-    q[model.getDofIndex("r_shoulder_pitch")] = -60.0*DEG_TO_RAD;
-    q[model.getDofIndex("r_shoulder_yaw")]   = +20.0*DEG_TO_RAD;
-    q[model.getDofIndex("r_elbow")]          = 40.0*DEG_TO_RAD;
-  }
-
-// }

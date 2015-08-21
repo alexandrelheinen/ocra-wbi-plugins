@@ -16,23 +16,14 @@
         protected:
             virtual void doInit(wocra::wOcraController& ctrl, wocra::wOcraModel& model);
             virtual void doUpdate(double time, wocra::wOcraModel& state, void** args);
-            // tasks postures
-            void closeArms (wocra::wOcraModel &model, VectorXd &q);
-            void openArms  (wocra::wOcraModel &model, VectorXd &q);
-            void moveRight (wocra::wOcraModel &model, VectorXd &q);
-            void moveLeft  (wocra::wOcraModel &model, VectorXd &q);
-            void moveCenter(wocra::wOcraModel &model, VectorXd &q);
-            void raiseArm  (char side, wocra::wOcraModel &model, VectorXd &q);
         private:
-            wocra::wOcraFullPostureTaskManager *posture;
-            // Full posture task
-            int mode; // up down
-            std::vector<Eigen::VectorXd> q;
-            // PD parameters values
-            double kp;
+            void positionInit();
+            wocra::wOcraSegCartesianTaskManager *leftHand, *rightHand; // posture managers
+            std::vector<Eigen::Vector3d> rightHandPos, leftHandPos;   // postures
+            int mode;                                                 // posture counter
+            double kp;                                                // PD parameters values
             double kd;
             double w;
-            int count;
     };
 
 // }
