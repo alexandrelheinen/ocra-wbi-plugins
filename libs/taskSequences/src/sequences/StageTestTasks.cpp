@@ -39,12 +39,6 @@
 
     if(time >= (mode + 1)*PERIOD/NB_POSTURES + 0.1  || (time < PERIOD/NB_POSTURES && mode == NB_POSTURES - 1))
     {
-      std::cout << ":: POSTURE N° "      << mode + 1 << " :: " << std::endl
-                << "left "               << std::endl
-                << leftHandPos.at(mode)  << std::endl
-                << "right "              << std::endl
-                << rightHandPos.at(mode) << std::endl;
-
       leftHand->setState(leftHandPos.at(mode));
       rightHand->setState(rightHandPos.at(mode));
       mode = (mode + 1)%NB_POSTURES;
